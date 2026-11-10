@@ -1,7 +1,6 @@
 <img src="assets/logo.svg" alt="drawing" width="60" align="left"/>
-&nbsp;
 
-# &nbsp; Chlorodachi
+# Chlorodachi
 
 | [Client](./client/README.md) | [Server](./server/README.md) | [Simulation](./simulation/README.md) |
 | - | - | - |
@@ -38,6 +37,6 @@ Custom: modular system with zone management (similar to Scale track)
 
 ## Team setup
 
-- dreamypatchy (Baitemir) - client, design
+- [dreamypatchy](https://github.com/dreamypatchy) (Baitemir) - client, design
 
-- codename-sunflower (Ilya) - server, simulator
+- [codename-sunflower](https://github.com/codename-sunflower) (Ilya) - server, simulator
