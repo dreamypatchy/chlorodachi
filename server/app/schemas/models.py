@@ -1,6 +1,6 @@
 from typing import List
-from motor.motor_asyncio import AsyncIOMotorClient
-from beanie import init_beanie, Link, Document
+from beanie import Link, Document
+from pydantic import BaseModel
 
 '''
 Users is a document model that has one greenhouse in it, greenhouse contains multiple zones, zones contain information, informations is constantly changed.
@@ -10,13 +10,13 @@ Dimensional values are used for the greenhouse canvas inside the mobile app.
 Maybe separating schemas and functions in different files.
 
 TODO: 
-- functions that work with schemas
+- functions that work with schemas - in other file
 - working information schema
-- information change functions
-- schemas connection with API
+- information change functions 
+- schemas connection with API - in other file
 '''
 
-class Information(Document):
+class Information(BaseModel):
     data: str
     #TODO
 
@@ -33,7 +33,7 @@ class Zones(Document):
     class Settings:
         name = "zones"
 
-class Greenhouse(Document):
+class Greenhouse(BaseModel):
     name: str
     w: int
     h: int
@@ -48,12 +48,7 @@ class User(Document):
     greenhouse: Greenhouse
 
     class Settings:
-        name = "users"
+        name = "users"        
 
 
-async def start_db():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
-    await init_beanie(database=client.db_name, document_models=[User])
-
-
-#TODO rest functions
+#TODO rest of the functions. NO MORE

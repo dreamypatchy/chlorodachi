@@ -4,5 +4,5 @@ pydantic[email]
 passlib[bcrypt]
 dotenv
 pyjwt
-motor
 beanie
+pymongo

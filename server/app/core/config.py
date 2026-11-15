@@ -1,10 +1,28 @@
-from dotenv import dotenv_values
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-config = dotenv_values(".env")
+ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 class Settings(BaseSettings):
-    token_eol: int = config.TOKEN_LIFESPAN_MINUTES
-    algorithm: str = config.ALGORITHM
-    private_key: str = config.PRIVATE_KEY
-    public_key: str = config.PUBLIC_KEY
+    token_eol: int = Field(alias="TOKEN_LIFESPAN_MINUTES")
+    algorithm: str = Field(alias="ALGORITHM", default="RS256")
+    private_key: str = Field(alias="PRIVATE_KEY")
+    public_key: str = Field(alias="PUBLIC_KEY")
+
+    mongodb_uri: str = Field(alias="MONGODB_URI")
+    mongodb_name: str = Field(alias="MONGODB_NAME")
+
+    title: str = "Cholorodachi something"
+    debug: bool = Field(alias="DEBUG", default=False)
+
+    model_config = SettingsConfigDict(
+        env_file = ENV_PATH,
+        env_file_encoding = "UTF-8",
+        extra = "ignore"
+    )
+
+
+
+
+settings = Settings()
