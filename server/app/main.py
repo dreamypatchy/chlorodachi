@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.api.v1.login import router as login_router
+from app.api.v1.test_router import router as test_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,3 +24,6 @@ async def home():
     return {"the root": "the rootest root"}
 
 app.include_router(login_router)
+
+if settings.debug == True:
+    app.include_router(test_router)

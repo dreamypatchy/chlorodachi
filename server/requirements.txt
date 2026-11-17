@@ -6,3 +6,4 @@ dotenv
 pyjwt
 beanie
 pymongo
+cryptography
