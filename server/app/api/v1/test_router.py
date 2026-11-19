@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.core.security import token_decode, token_encode, Token
-from app.core.database import find_user, create_test_user
+from app.core.database import find_user, create_test_user, delete_test_user
 
 
 '''
@@ -39,14 +39,21 @@ DB tests
 
 @router.get("/db/test_user")
 async def test_db_user_create():
-    try:
-        return await create_test_user()
-    except:
-        raise HTTPException(status_code=400, detail="User creation problem")
+    #try:
+    return await create_test_user()
+    #except:
+    #    raise HTTPException(status_code=400, detail="User creation problem")
 
 @router.post("/db/get_user")
 async def test_db_get_user(username: str):
     try:
-        return {"user": await find_user(username)}
+        return await find_user(username)
     except:
         raise HTTPException(status_code=400, detail="Malformed information")
+
+@router.get("/db/delete_user")
+async def test_db_user_delete():
+    #try:
+        return await delete_test_user()
+    #except:
+    #    raise HTTPException(status_code=400, detail="User was not deleted")

@@ -1,5 +1,5 @@
 from typing import List, Optional
-from beanie import Link, Document
+from beanie import Document
 from pydantic import BaseModel
 
 '''
@@ -22,35 +22,36 @@ TODO:
 - acceptable ranges for autmoatization
 '''
 
+class ZoneRange(BaseModel):
+    maxhumidity: float
+    minhumidity: float
+    maxtemperature: float
+    mintemperature: float
+    maxmoisture: float
+    minmoisture: float
+    maxilluminance: float
+    minilluminance: float
+
 class ZoneInformation(BaseModel):
     plant: str
     temperature: float
     humidity: float
     moisture: float
     illuminance: float
+    ranges: ZoneRange
 
-    
-    class Settings:
-        name = "information"
-
-class Zones(Document):
+class Zones(BaseModel):
     x: float
     y: float
     h: float
     w: float
     zoneinformation: ZoneInformation
 
-    class Settings:
-        name = "zones"
-
 class Greenhouse(BaseModel):
     name: str
     w: float
     h: float
     zones: List[Zones]
-
-    class Settings:
-        name = "greenhouse"
 
 class User(Document):
     username: str
