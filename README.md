@@ -19,21 +19,21 @@ Custom: modular system with zone management (similar to Scale track)
 
 ## Features
 
-- M1 (Authentication): idk some jwt **WRITE THIS LATER**
+- M1 (Authentication): single user setup with jwt authentication
 
-- M2 (Dashboard): observe temperature, humidity, moisture and light in entire greenhouse and pinned zones on home screen
+- M2 (Dashboard): observe zone states and sensor values in them on dashboard screen
 
 - M3 (Remote control): control heating, irrigation and lighting systems over REST API
 
-- M4 (Operating modes): manual and automatic mode based on rules **SOUNDS WEAK**
+- M4 (Operating modes): manual and automatic mode based on trigger-action rules with ranges of allowed values
 
-- M5 (Notifications): notifications are sent over **ADD LATER**
+- M5 (Notifications): get notifications about urgent alerts (water tank close to empty, etc.) and weekly reports
 
-- M6 (History and charts): **WHAT TO WRITE HERE**
+- M6 (History and charts): observe changes of sensor values through the week/month/year
 
 - M7 (Settings): automation rules and zone information are stored in MongoDB server-side
 
-- M8 (Failure handling): **KILLS ITSELF ON ERRORS**
+- M8 (Failure handling): app notifies user about possible errors, like connection reset
 
 ## Team setup
 
