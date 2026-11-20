@@ -38,25 +38,25 @@ class ZoneInformation(BaseModel):
     humidity: float
     moisture: float
     illuminance: float
-    ranges: ZoneRange
+    ranges: ZoneRange | None = None
 
 class Zones(BaseModel):
     x: float
     y: float
     h: float
     w: float
-    zoneinformation: ZoneInformation
+    zoneinformation: ZoneInformation | None = None
 
 class Greenhouse(BaseModel):
     name: str
     w: float
     h: float
-    zones: List[Zones]
+    zones: List[Zones] | None = None
 
 class User(Document):
     username: str
     password: str
-    greenhouse: Greenhouse
+    greenhouse: Greenhouse | None = None
 
     class Settings:
         name = "users"        

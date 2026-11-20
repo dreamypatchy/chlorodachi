@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.core.security import token_decode, token_encode, Token
-from app.core.database import find_user, create_test_user, delete_test_user
+from app.core.database import find_user, create_test_user, delete_user, create_scratch_greenhouse, create_scratch_user, create_scratch_zone
 
 
 '''
@@ -39,10 +39,10 @@ DB tests
 
 @router.get("/db/test_user")
 async def test_db_user_create():
-    #try:
-    return await create_test_user()
-    #except:
-    #    raise HTTPException(status_code=400, detail="User creation problem")
+    try:
+        return await create_test_user()
+    except:
+        raise HTTPException(status_code=400, detail="User creation problem")
 
 @router.post("/db/get_user")
 async def test_db_get_user(username: str):
@@ -51,9 +51,30 @@ async def test_db_get_user(username: str):
     except:
         raise HTTPException(status_code=400, detail="Malformed information")
 
-@router.get("/db/delete_user")
-async def test_db_user_delete():
+@router.post("/db/delete_user")
+async def test_db_user_delete(username: str):
+    try:
+        return await delete_user(username)
+    except:
+        raise HTTPException(status_code=400, detail="User was not deleted")
+
+@router.post("/db/scratch_user")
+async def scratch_user_create(username: str, password: str):
+    try:
+        return await create_scratch_user(username, password)
+    except:
+        raise HTTPException(status_code=400, detail="Scratch user can not be created")
+
+@router.post("/db/scratch_greenhouse")
+async def scratch_greenhouse_create(username: str, greenhouse_name: str, w: float, h: float):
+    try:
+        return await create_scratch_greenhouse(username, greenhouse_name, w, h)
+    except:
+        raise HTTPException(status_code=400, detail="Scratch greenhouse was not created")
+
+@router.post("/db/scratch_zone")
+async def scratch_zone_create(username: str, x: float, y: float, h: float, w: float):
     #try:
-        return await delete_test_user()
+        return await create_scratch_zone(username, x, y, h, w)
     #except:
-    #    raise HTTPException(status_code=400, detail="User was not deleted")
+    #    raise HTTPException(status_code=400, detail="Scratch zone was not created")

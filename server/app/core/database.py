@@ -29,7 +29,24 @@ async def find_user(name):
     if found_user:
         return {"user": found_user}
     else:
-        return {"Problem": f"User {name} doesn't exist"}
+        return {"user": False}
+
+async def delete_user(name: str):
+    user = await find_user(name)
+    if user["user"]:
+        try:
+            await User.delete_all()
+            return {"Success":"User was deleted"}
+        except: 
+            return {"Problem": "User wasn't deleted"}
+
+    else:
+        return {"Problem": "User doesn't exist"}
+
+
+'''
+Rta 6 test queries
+'''
 
 async def create_test_user():
     fi_user = await find_user("test")
@@ -51,17 +68,41 @@ async def create_test_user():
             return {"Problem": exctime}
 
     else:
-        return {"Problem": "User already created"}
+        return {"Problem": "User already exists"}
 
-
-async def delete_test_user():
-    test_user = await find_user("test")
-    if test_user:
+async def create_scratch_user(username: str, password: str):
+    fi_user = await find_user(username)
+    if not fi_user["user"]:
         try:
-            result = await test_user["user"].delete_many()
-            return {"Succes": "User deleted"}
-        except: 
-            return {"Problem": "User wasn't deleted"}
-
+            user = User(username = username, password = password)
+            await user.insert()
+            return {"Succes": "User was created"}
+        except:
+            return {"Problem": "User was not created"}
     else:
-        return {"Problem": "User don't exist"}
+        return {"Problem": "User exists"}
+
+async def create_scratch_greenhouse(username: str, greenhouse_name: str, w: float, h: float):
+    fi_user = await find_user(username)
+    if fi_user["user"]:
+        try:
+            greenhouse = Greenhouse(name = greenhouse_name, w = w, h = h)
+            await fi_user["user"].set({User.greenhouse: greenhouse})
+            await fi_user["user"].save()
+            return {"Succes": "Greenhouse was created and set"}
+        except:
+            return {"Problem": "Greenhouse was not created"}
+    else:
+        return {"Problem": "User for this greenhouse is not exists"}
+
+async def create_scratch_zone(username: str, x: float, y: float, h: float, w: float):
+    fi_user = await find_user(username)
+    if fi_user["user"]:
+        #try:
+            zone = Zones(x = x, y = y, h = h, w = w)
+            await fi_user["user"].set({User.greenhouse.zones: zone})
+            return {"Succes": "Zone was added"}
+        #except:
+        #    return {"Problem": "Zone was not created"}
+    else:
+        return {"Problem": "User is not exists"}
