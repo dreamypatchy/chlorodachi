@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">chlorodachi</string>
+    <string name="login_screen_title">Подключитесь к серверу</string>
+    <string name="login_screen_server_address">Адрес сервера</string>
+    <string name="login_screen_username">Имя пользователя</string>
+    <string name="login_screen_password">Пароль</string>
+    <string name="login_screen_connect">Подключиться</string>
+    <string name="login_screen_show_password">Показать пароль</string>
+    <string name="login_screen_hide_password">Скрыть пароль</string>
 </resources>
