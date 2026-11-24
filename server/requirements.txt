@@ -7,3 +7,4 @@ pyjwt
 beanie
 pymongo
 cryptography
+argon2-cffi

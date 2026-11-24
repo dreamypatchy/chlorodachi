@@ -21,6 +21,7 @@ Create a `.env` file inside the `server/` directory:
 
 ```ini
 TOKEN_LIFESPAN_MINUTES=30
+TOKEN_LIFESPAN_DAYS=1
 PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ALGORITHM="RS256"

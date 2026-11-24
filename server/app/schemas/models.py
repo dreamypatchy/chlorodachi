@@ -1,11 +1,14 @@
-from typing import List, Optional
-from beanie import Document
-from pydantic import BaseModel
+from typing import List
+from beanie import Document, PydanticObjectId, Link
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 '''
 Users is a document model that has one greenhouse in it, 
 greenhouse contains multiple zones, zones contain information, 
 informations is constantly changed.
+
+Device is also document model that is linked to one particular zone.
 
 There's also acceptable ranges for automatization purposes.
 
@@ -21,6 +24,16 @@ TODO:
 + schemas connection with API
 - acceptable ranges for autmoatization
 '''
+
+class Device(Document):
+    serial_number: str
+    name: str | None = None
+    device_type: str | None = None
+    isActivated: bool = False
+    activationDate: int | None = None
+
+    class Settings:
+        name = "device"
 
 class ZoneRange(BaseModel):
     maxhumidity: float
@@ -40,18 +53,23 @@ class ZoneInformation(BaseModel):
     illuminance: float
     ranges: ZoneRange | None = None
 
-class Zones(BaseModel):
+class Zone(BaseModel):
+    id: PydanticObjectId = Field(default_factory=PydanticObjectId)
+    name: str | None = None
     x: float
     y: float
     h: float
     w: float
+
+    devices: list[Link[Device]] | None = None
+
     zoneinformation: ZoneInformation | None = None
 
 class Greenhouse(BaseModel):
     name: str
     w: float
     h: float
-    zones: List[Zones] | None = None
+    zones: List[Zone] | None = None
 
 class User(Document):
     username: str
@@ -59,7 +77,7 @@ class User(Document):
     greenhouse: Greenhouse | None = None
 
     class Settings:
-        name = "users"        
+        name = "user"        
 
 
 #TODO rest of the functions. NO MORE

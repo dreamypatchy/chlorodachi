@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.core.security import token_decode, token_encode, Token
-from app.core.database import find_user, create_test_user, delete_user, create_scratch_greenhouse, create_scratch_user, create_scratch_zone
+from app.core.database import find_user, create_test_user, delete_user, create_scratch_greenhouse, create_scratch_user, create_scratch_zone, create_test_device, link_device_zone, find_device
 
 
 '''
@@ -42,7 +42,7 @@ async def test_db_user_create():
     try:
         return await create_test_user()
     except:
-        raise HTTPException(status_code=400, detail="User creation problem")
+       raise HTTPException(status_code=400, detail="User creation problem")
 
 @router.post("/db/get_user")
 async def test_db_get_user(username: str):
@@ -57,6 +57,18 @@ async def test_db_user_delete(username: str):
         return await delete_user(username)
     except:
         raise HTTPException(status_code=400, detail="User was not deleted")
+
+@router.post("/db/link_device")
+async def test_link_device(zone_id: str, serial: str):
+    return await link_device_zone(zone_id=zone_id, device_serial=serial)
+
+@router.post("/db/create_device")
+async def test_create_device(serial: str, name: str = None):
+    return await create_test_device(serial=serial, name=name)
+
+@router.post("/db/find_device")
+async def test_find_device(serial: str):
+    return await find_device(serial=serial)
 
 @router.post("/db/scratch_user")
 async def scratch_user_create(username: str, password: str):
@@ -74,7 +86,7 @@ async def scratch_greenhouse_create(username: str, greenhouse_name: str, w: floa
 
 @router.post("/db/scratch_zone")
 async def scratch_zone_create(username: str, x: float, y: float, h: float, w: float):
-    #try:
+    try:
         return await create_scratch_zone(username, x, y, h, w)
-    #except:
-    #    raise HTTPException(status_code=400, detail="Scratch zone was not created")
+    except:
+        raise HTTPException(status_code=400, detail="Scratch zone was not created")
