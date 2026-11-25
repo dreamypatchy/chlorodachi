@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">chlorodachi</string>
+    <string name="no_data">Н/Д</string>
     <string name="login_screen_title">Подключитесь к серверу</string>
     <string name="login_screen_server_address">Адрес сервера</string>
     <string name="login_screen_username">Имя пользователя</string>
@@ -7,4 +8,14 @@
     <string name="login_screen_connect">Подключиться</string>
     <string name="login_screen_show_password">Показать пароль</string>
     <string name="login_screen_hide_password">Скрыть пароль</string>
+    <string name="dashboard_screen_title">Панель управления</string>
+    <string name="dashboard_screen_greenhouse_map_section_title">Карта теплицы</string>
+    <string name="dashboard_screen_zones_section_title">Зоны</string>
+    <string name="dashboard_screen_zones_section_zone_info">%1$s | %2$s | %3$s\n%4$s почва</string>
+    <string name="soil_status_dry">Сухая</string>
+    <string name="soil_status_wet">Мокрая</string>
+    <string name="soil_status_moist">Влажная</string>
+    <string name="app_bar_actions_back">Назад</string>
+    <string name="app_bar_actions_notifications">Уведомления</string>
+    <string name="app_bar_actions_settings">Настройки</string>
 </resources>
