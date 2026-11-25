@@ -6,6 +6,8 @@ from app.core.config import settings
 from app.schemas.models import User, Zone, Greenhouse, ZoneInformation, ZoneRange, Device
 from app.core.security import verify_password, hash_password
 
+from app.core.exceptions import *
+
 '''
 Something for the DB, not sure for now
 
@@ -14,54 +16,116 @@ All of the database queries and updates should be handled here.
 
 async def init_db():
     global client
-    try:
-        client = AsyncMongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
-
-        db = client[settings.mongodb_name]
-
-        await init_beanie(database=db, document_models=[User, Device])
-    
-    except ServerSelectionTimeoutError:
-        client = AsyncMongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
-
-        db = client[settings.mongodb_name]
-
-        await init_beanie(database=db, document_models=[User, Device])
-
+    client = AsyncMongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
+    db = client[settings.mongodb_name]
+    max_attempts = 5 
+    for attempt in range (1, max_attempts):
+        try:
+            await init_beanie(database=db, document_models=[User, Device])
+            break
+        except ServerSelectionTimeoutError:
+            print(f"DB initialization failed. Attempt: {attempt}/{max_attempts}. Trying again.")
+            if attempt == max_attempts:
+                print(f"Connection with {settings.mongodb_name} not established.")
+                break
 
 async def close_db():
     if client:
         client.close() 
 
 async def find_user(name):
-    found_user = await User.find_one(User.username == name)
+    found_user = await User.find_one({"username": name})
     if found_user:
-        return {"user": found_user}
+        return found_user
     else:
-        return {"user": False}
+        return None
 
 async def find_device(serial):
-    found_device = await Device.find_one(Device.serial_number == serial)
+    found_device = await Device.find_one({"serial_number": serial})
     if found_device:
-        return {"deivce": found_device}
+        return found_device
     else:
-        return {"device": False}
+        return None
 
 async def delete_user(name: str):
     user = await find_user(name)
-    if user["user"]:
+    if user:
         try:
-            await User.delete_all()
-            return {"Success":"User was deleted"}
+            await user.delete()
         except: 
-            return {"Problem": "User wasn't deleted"}
+            raise NotDeleted
 
     else:
-        return {"Problem": "User doesn't exist"}
+        raise UserAlreadyExists
+
+async def get_user_id(username: str):
+    fi_user = await find_user(username)
+    if fi_user:
+        return str(fi_user.id)
+    raise UserDoesntExists
+
+async def create_scratch_user(username: str, password: str):
+    fi_user = await find_user(username)
+    if not fi_user:
+        try:
+            user = User(username = username, password = hash_password(password))
+            await user.insert()
+        except:
+            raise UserCreationError
+    else:
+        raise UserAlreadyExists
+
+async def create_scratch_greenhouse(username: str, greenhouse_name: str, w: float, h: float):
+    fi_user = await find_user(username)
+    if fi_user:
+        try:
+            greenhouse = Greenhouse(name = greenhouse_name, w = w, h = h)
+            await fi_user.set({User.greenhouse: greenhouse})
+            await fi_user.save()
+        except:
+            raise GreenhouseCreationError
+    else:
+        raise UserDoesntExists
+
+async def create_scratch_zone(username: str, x: float, y: float, h: float, w: float):
+    fi_user = await find_user(username)
+    if fi_user:
+        try:
+            zone = Zone(x = x, y = y, h = h, w = w)
+            await fi_user.set({User.greenhouse.zones: zone})
+        except:
+            raise ZoneCreationError
+    else:
+        raise UserDoesntExists
+
+async def link_device_zone(zone_id: str, device_serial: str):
+    device = await Device.find_one({"serial_number": device_serial})
+    if not device:
+        raise DeviceNotFound()
+
+    target_id = PydanticObjectId(zone_id)
+
+    user = await User.find_one({"greenhouse.zones.id": target_id})
+    
+    if not user:
+        raise UserDoesntExists("User for this zone doesn't exists")
+
+    zone = next((z for z in user.greenhouse.zones if z.id == target_id), None)
+
+    if not zone:
+        raise ZoneNotFound("Zone was not found")
+
+    if not zone.devices:
+        zone.devices = []
+
+    zone.devices.append(device)
+    await user.save()
 
 
 '''
 Rta 6 test queries
+
+Mostly deprecated
 '''
 
 async def create_test_user():
@@ -76,15 +140,11 @@ async def create_test_user():
             await test_user.insert()
 
             return {"Succes": "User created succesfuly"}
-        except AttributeError:
-            return {"Problem": "Something with the creation"}
-        except ConfigurationError as conferr:
-            return {"Problem": conferr}
-        except ExecutionTimeout as exctime:
-            return {"Problem": exctime}
 
+        except:
+            raise UserCreationError
     else:
-        return {"Problem": "User already exists"}
+        raise UserAlreadyExists
 
 async def create_test_device(serial: str, name: str = None):
     try:
@@ -92,67 +152,6 @@ async def create_test_device(serial: str, name: str = None):
         await test_device.insert()
         return {"Success": "Device created"}
     except:
-        return {"Problem" : "Something went wrong"}
-
-async def link_device_zone(zone_id: str, device_serial: str):
-    device = await Device.find_one({"serial_number": device_serial})
-    if not device:
-        return {"Problem": "Device was not found"}
-
-    target_id = PydanticObjectId(zone_id)
-
-    user = await User.find_one({"greenhouse.zones.id": target_id})
-    
-    if not user:
-        return {"Problem": "Zone was not found"}
-
-    zone = next((z for z in user.greenhouse.zones if z.id == target_id), None)
-
-    if not zone:
-        return {"Problem": "Zone was not found"}
-
-    if not zone.devices:
-        zone.devices = []
-
-    zone.devices.append(device)
-    await user.save()
-    
-    return {"Succes": "Device was linked"}
+        raise DeviceCreationError
     
 
-async def create_scratch_user(username: str, password: str):
-    fi_user = await find_user(username)
-    if not fi_user["user"]:
-        try:
-            user = User(username = username, password = hash_password(password))
-            await user.insert()
-            return {"Succes": "User was created"}
-        except:
-            return {"Problem": "User was not created"}
-    else:
-        return {"Problem": "User exists"}
-
-async def create_scratch_greenhouse(username: str, greenhouse_name: str, w: float, h: float):
-    fi_user = await find_user(username)
-    if fi_user["user"]:
-        try:
-            greenhouse = Greenhouse(name = greenhouse_name, w = w, h = h)
-            await fi_user["user"].set({User.greenhouse: greenhouse})
-            await fi_user["user"].save()
-            return {"Succes": "Greenhouse was created and set"}
-        except:
-            return {"Problem": "Greenhouse was not created"}
-    else:
-        return {"Problem": "User for this greenhouse is not exists"}
-
-async def create_scratch_zone(username: str, x: float, y: float, h: float, w: float):
-    fi_user = await find_user(username)
-    if fi_user["user"]:
-        #try:
-            zone = Zone(x = x, y = y, h = h, w = w)
-            await fi_user["user"].set({User.greenhouse.zones: zone})
-            return {"Succes": "Zone was added"}
-        #except:
-        #    return {"Problem": "Zone was not created"}
-    else:
-        return {"Problem": "User is not exists"}

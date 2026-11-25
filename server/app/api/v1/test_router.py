@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from app.core.security import token_decode, token_encode, Token
+from app.core.security import token_decode, token_encode
 from app.core.database import find_user, create_test_user, delete_user, create_scratch_greenhouse, create_scratch_user, create_scratch_zone, create_test_device, link_device_zone, find_device
-
+from datetime import datetime, timezone, timedelta
+from uuid import uuid4
 
 '''
 Something made to test the functionality of the database and JWT
@@ -17,16 +18,17 @@ router = APIRouter(prefix="/api/v1/test", tags=["Test"])
 JWT tests
 '''
 
-@router.get("/token", response_model=Token)
-async def test_get_token(info_to_encode: str):
-    try:
-        token = token_encode(str(info_to_encode))
+@router.post("/token", tags=["Token"])
+async def test_get_token(sub: str, type: str, info: dict[str, Any] | None = None):
+    #try:
+        now = datetime.now(timezone.utc)
+        token = token_encode(sub=sub, sid=str(uuid4()), expire_delta=timedelta(days=7), now=now, token_type=type, info=info)
         return token
-    except:
-        raise HTTPException(status_code=400, detail="Type error")
+    #except:
+    #    raise HTTPException(status_code=400, detail="Type error")
 
-@router.post("/token/decode")
-async def test_decode_token(token: Token):
+@router.post("/token/decode", tags=["Token"])
+async def test_decode_token(token: str):
     try:
         return {"info": token_decode(token)}
     except:
@@ -35,6 +37,8 @@ async def test_decode_token(token: Token):
 
 '''
 DB tests
+
+!!!Mostly deprecated now!!!
 '''
 
 @router.get("/db/test_user")

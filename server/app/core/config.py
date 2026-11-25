@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 class Settings(BaseSettings):
-    token_eol_mintues: int = Field(alias="TOKEN_LIFESPAN_MINUTES")
+    token_eol_minutes: int = Field(alias="TOKEN_LIFESPAN_MINUTES")
     token_eol_days: int = Field(alias="TOKEN_LIFESPAN_DAYS")
     algorithm: str = Field(alias="ALGORITHM", default="RS256")
     private_key: str = Field(alias="PRIVATE_KEY")
