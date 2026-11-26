@@ -26,7 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +39,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stupid.chlorodachi.R
 import com.stupid.chlorodachi.ui.theme.ChlorodachiTheme
 
@@ -50,7 +52,7 @@ fun LoginDataField(
     type: String,
     modifier: Modifier = Modifier
 ) {
-    var passwordVisibility by remember { mutableStateOf(false) }
+    var passwordVisibility by rememberSaveable() { mutableStateOf(false) }
     val icon = if (passwordVisibility)
         painterResource(id = R.drawable.ic_visibility)
     else
@@ -98,12 +100,32 @@ fun LoginDataField(
             )
     }
 }
-@Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
-    var serverAddress by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
 
+@Composable
+fun LoginRoute(
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LoginScreen(
+        uiState = uiState,
+        onServerAddressChange = viewModel::onServerAddressChange,
+        onUsernameChange = viewModel::onUsernameChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConnectClick = viewModel::onConnectClick,
+        modifier = modifier
+    )
+}
+@Composable
+fun LoginScreen(
+    uiState: LoginUiState,
+    onServerAddressChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConnectClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val layoutDirection = LocalLayoutDirection.current
     Surface(
         modifier = Modifier
@@ -131,34 +153,32 @@ fun LoginScreen(modifier: Modifier = Modifier) {
             )
             Spacer(modifier = Modifier.height(18.dp))
             LoginDataField(
-                value = serverAddress,
-                onValueChange = { serverAddress = it },
+                value = uiState.serverAddress,
+                onValueChange = onServerAddressChange,
                 label = stringResource(R.string.login_screen_server_address),
                 type = "uri",
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(18.dp))
             LoginDataField(
-                value = username,
-                onValueChange = { username = it },
+                value = uiState.username,
+                onValueChange = onUsernameChange,
                 label = stringResource(R.string.login_screen_username),
                 type = "username",
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(18.dp))
             LoginDataField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 label = stringResource(R.string.login_screen_password),
                 type = "password",
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(18.dp))
-            Button(onClick = { }) {
+            Button(onClick = onConnectClick) {
                 Text(stringResource(R.string.login_screen_connect))
             }
-            Spacer(modifier = Modifier.height(18.dp))
-            Text("server address: $serverAddress\nusername: $username\npassword: $password")
         }
     }
 }
@@ -167,6 +187,13 @@ fun LoginScreen(modifier: Modifier = Modifier) {
 @Composable
 fun LoginScreenPreview() {
     ChlorodachiTheme() {
-        LoginScreen(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center))
+        LoginScreen(
+            uiState = LoginUiState(serverAddress = "https://example.com", username = "admin", password = "admin123"),
+            onServerAddressChange = {},
+            onUsernameChange = {},
+            onPasswordChange = {},
+            onConnectClick = {},
+            modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)
+        )
     }
 }

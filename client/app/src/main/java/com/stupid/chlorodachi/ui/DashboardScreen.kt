@@ -7,21 +7,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,24 +44,44 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stupid.chlorodachi.R
 import com.stupid.chlorodachi.data.Datasource
 import com.stupid.chlorodachi.model.Zone
 import com.stupid.chlorodachi.ui.theme.ChlorodachiTheme
 
 @Composable
-fun DashboardScreen(modifier: Modifier = Modifier) {
+fun DashboardRoute(
+    modifier: Modifier = Modifier,
+    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    DashboardScreen(
+        uiState = uiState,
+        onZoneClick = {},
+        onSeeAllClick = {},
+        onNotificationsClick = {},
+        onSettingsClick = {},
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DashboardScreen(
+    uiState: DashboardUiState,
+    onZoneClick: (ZoneUiModel) -> Unit,
+    onSeeAllClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val layoutDirection = LocalLayoutDirection.current
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .padding(
-                start = WindowInsets.safeDrawing.asPaddingValues()
-                    .calculateStartPadding(layoutDirection),
-                end = WindowInsets.safeDrawing.asPaddingValues()
-                    .calculateEndPadding(layoutDirection),
-            )
     ) {
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -73,10 +89,6 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 MediumTopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
                     title = {
                         Text(
                             stringResource(R.string.dashboard_screen_title),
@@ -92,7 +104,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                                 painter = painterResource(R.drawable.ic_notifications),
                                 contentDescription = stringResource(R.string.app_bar_actions_notifications)
                             )
-                        };
+                        }
                         IconButton(
                             onClick = {}
                         ) {
@@ -106,34 +118,50 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                 )
             }
         ) { innerPadding ->
-            DashboardContents(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-            )
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                DashboardContents(
+                    zones = uiState.zones,
+                    onZoneClick = onZoneClick,
+                    onSeeAllClick = onSeeAllClick,
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                )
+            }
         }
     }
 }
 
 @Composable
 fun DashboardContents(
+    zones: List<ZoneUiModel>,
+    onZoneClick: (ZoneUiModel) -> Unit,
+    onSeeAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val zones = remember { Datasource().loadDemoZones() }
-
     LazyColumn(modifier = modifier.padding(horizontal = 8.dp)) {
         item {
             GreenhouseMapSection(
-                {},
-                zones = zones
+                zones = zones,
+                onSeeAllClick = onSeeAllClick,
+                onZoneClick = onZoneClick
             )
         }
         item {
             ZonesHeader(
-                onSeeAllClick = {}
+                onSeeAllClick = onSeeAllClick
             )
         }
-        items(zones) { zone ->
+        items(zones, key = { it.id }) { zone ->
             ZoneCard(
                 zone = zone,
                 modifier = Modifier.padding(
@@ -147,8 +175,9 @@ fun DashboardContents(
 
 @Composable
 fun GreenhouseMapSection(
+    zones: List<ZoneUiModel>,
     onSeeAllClick: () -> Unit,
-    zones: List<Zone>,
+    onZoneClick: (ZoneUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -157,11 +186,11 @@ fun GreenhouseMapSection(
         SectionHeader(
             title = stringResource(R.string.dashboard_screen_greenhouse_map_section_title),
             onSeeAllClick = onSeeAllClick,
-            modifier = modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
         ZonesGrid(
             zones = zones,
-            onZoneClick = {}
+            onZoneClick = onZoneClick
         )
     }
 }
@@ -208,18 +237,14 @@ fun SectionHeader(
 }
 
 @Composable
-fun ZoneCard(zone: Zone, modifier: Modifier = Modifier) {
+fun ZoneCard(zone: ZoneUiModel, modifier: Modifier = Modifier) {
     val noData = stringResource(R.string.no_data)
-    val zoneInfo = zone.zoneInformation
-
-    val soilStatus = if (zoneInfo?.moisture != null && zoneInfo.ranges != null) {
-        when (zoneInfo.moisture) {
-            in zoneInfo.ranges.dryMoisture -> stringResource(R.string.soil_status_dry)
-            in zoneInfo.ranges.wetMoisture -> stringResource(R.string.soil_status_wet)
-            in zoneInfo.ranges.moistMoisture -> stringResource(R.string.soil_status_moist)
-            else -> stringResource(R.string.no_data)
-        }
-    } else noData
+    val soilText = when (zone.soilStatus) {
+        SoilStatus.DRY -> stringResource(R.string.soil_status_dry)
+        SoilStatus.MOIST -> stringResource(R.string.soil_status_moist)
+        SoilStatus.WET -> stringResource(R.string.soil_status_wet)
+        SoilStatus.UNKNOWN -> noData
+    }
 
     OutlinedCard(
         modifier = modifier
@@ -242,10 +267,10 @@ fun ZoneCard(zone: Zone, modifier: Modifier = Modifier) {
                 Text(
                     stringResource(
                         R.string.dashboard_screen_zones_section_zone_info,
-                        zoneInfo?.temperature?.let { "%.1f°C".format(it) } ?: noData,
-                        zoneInfo?.humidity?.let { "%.0f%%".format(it) } ?: noData,
-                        zoneInfo?.illuminance?.let { "%.0f lx".format(it) } ?: noData,
-                        soilStatus
+                        zone.temperature?.let { "%.1f°C".format(it) } ?: noData,
+                        zone.humidity?.let { "%.0f%%".format(it) } ?: noData,
+                        zone.illuminance?.let { "%.0f lx".format(it) } ?: noData,
+                        soilText
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -262,16 +287,16 @@ fun ZoneCard(zone: Zone, modifier: Modifier = Modifier) {
 
 @Composable
 fun ZonesGrid(
-    zones: List<Zone>,
-    onZoneClick: (Zone) -> Unit,
+    zones: List<ZoneUiModel>,
+    onZoneClick: (ZoneUiModel) -> Unit,
     modifier: Modifier = Modifier,
     outerPadding: Dp = 16.dp,
     gap: Dp = 8.dp
 ) {
     if (zones.isEmpty()) return
 
-    val columns = zones.maxOf { (it.x + it.w - 1).toInt() }
-    val rows = zones.maxOf { (it.y + it.h - 1).toInt() }
+    val columns = zones.maxOf { it.gridX + it.gridWidth - 1 }
+    val rows = zones.maxOf { it.gridY + it.gridHeight - 1 }
 
     BoxWithConstraints(
         modifier = modifier
@@ -286,10 +311,10 @@ fun ZonesGrid(
                 .height(gridHeight)
         ) {
             zones.forEach { zone ->
-                val col = zone.x.toInt() - 1
-                val row = zone.y.toInt() - 1
-                val w = zone.w.toInt()
-                val h = zone.h.toInt()
+                val col = zone.gridX - 1
+                val row = zone.gridY - 1
+                val w = zone.gridWidth
+                val h = zone.gridHeight
 
                 ZoneTile(
                     zone = zone,
@@ -311,10 +336,9 @@ fun ZonesGrid(
 
 @Composable
 fun ZoneTile(
-    zone: Zone,
+    zone: ZoneUiModel,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    needsAttention: Boolean = false
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -327,7 +351,7 @@ fun ZoneTile(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        if (needsAttention) {
+        if (zone.needsAttention) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -345,6 +369,15 @@ fun ZoneTile(
 @Composable
 fun DashboardScreenPreview() {
     ChlorodachiTheme {
-        DashboardScreen()
+        DashboardScreen(
+            uiState = DashboardUiState(
+                isLoading = false,
+                zones = Datasource().loadDemoZones().map(Zone::toUiModel)
+            ),
+            onZoneClick = {},
+            onSeeAllClick = {},
+            onNotificationsClick = {},
+            onSettingsClick = {}
+        )
     }
 }
