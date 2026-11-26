@@ -3,11 +3,17 @@ package com.stupid.chlorodachi.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -15,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -96,56 +104,69 @@ fun LoginScreen(modifier: Modifier = Modifier) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Column(
-        modifier = modifier
-            .padding(horizontal = 20.dp)
-            .safeDrawingPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    val layoutDirection = LocalLayoutDirection.current
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(
+                start = WindowInsets.safeDrawing.asPaddingValues()
+                    .calculateStartPadding(layoutDirection),
+                end = WindowInsets.safeDrawing.asPaddingValues()
+                    .calculateEndPadding(layoutDirection),
+            ),
     ) {
-        Text(
-            stringResource(R.string.login_screen_title),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Start,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        LoginDataField(
-            value = serverAddress,
-            onValueChange = { serverAddress = it },
-            label = stringResource(R.string.login_screen_server_address),
-            type = "uri",
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        LoginDataField(
-            value = username,
-            onValueChange = { username = it },
-            label = stringResource(R.string.login_screen_username),
-            type = "username",
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        LoginDataField(
-            value = password,
-            onValueChange = { password = it },
-            label = stringResource(R.string.login_screen_password),
-            type = "password",
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        Button(onClick = { }) {
-            Text(stringResource(R.string.login_screen_connect))
+        Column(
+            modifier = modifier
+                .padding(horizontal = 20.dp)
+                .safeDrawingPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                stringResource(R.string.login_screen_title),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            LoginDataField(
+                value = serverAddress,
+                onValueChange = { serverAddress = it },
+                label = stringResource(R.string.login_screen_server_address),
+                type = "uri",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            LoginDataField(
+                value = username,
+                onValueChange = { username = it },
+                label = stringResource(R.string.login_screen_username),
+                type = "username",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            LoginDataField(
+                value = password,
+                onValueChange = { password = it },
+                label = stringResource(R.string.login_screen_password),
+                type = "password",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            Button(onClick = { }) {
+                Text(stringResource(R.string.login_screen_connect))
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            Text("server address: $serverAddress\nusername: $username\npassword: $password")
         }
-        Spacer(modifier = Modifier.height(18.dp))
-        Text("server address: $serverAddress\nusername: $username\npassword: $password")
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    ChlorodachiTheme {
+    ChlorodachiTheme() {
         LoginScreen(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center))
     }
 }
