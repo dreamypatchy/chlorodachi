@@ -1,10 +1,11 @@
 from pymongo import AsyncMongoClient
 from pymongo.errors import ConfigurationError, ExecutionTimeout, ServerSelectionTimeoutError
 from beanie import init_beanie, PydanticObjectId
+from datetime import datetime, timedelta
 
 from app.core.config import settings
-from app.schemas.models import User, Zone, Greenhouse, ZoneInformation, ZoneRange, Device
-from app.core.security import verify_password, hash_password
+from app.schemas.models import User, Zone, Greenhouse, ZoneInformation, Device, Session, Automation
+from app.core.security import verify_password, hash_password, create_session
 
 from app.core.exceptions import *
 
@@ -21,7 +22,7 @@ async def init_db():
     max_attempts = 5 
     for attempt in range (1, max_attempts):
         try:
-            await init_beanie(database=db, document_models=[User, Device])
+            await init_beanie(database=db, document_models=[User, Device, Session])
             break
         except ServerSelectionTimeoutError:
             print(f"DB initialization failed. Attempt: {attempt}/{max_attempts}. Trying again.")
@@ -33,17 +34,24 @@ async def close_db():
     if client:
         client.close() 
 
-async def find_user(name):
+async def find_user(name: str):
     found_user = await User.find_one({"username": name})
     if found_user:
         return found_user
     else:
         return None
 
-async def find_device(serial):
+async def find_device(serial: str):
     found_device = await Device.find_one({"serial_number": serial})
     if found_device:
         return found_device
+    else:
+        return None
+
+async def find_session(sid: str):
+    found_session = await Session.find_one({"_id": sid})
+    if found_session:
+        return found_session
     else:
         return None
 
@@ -63,6 +71,20 @@ async def get_user_id(username: str):
     if fi_user:
         return str(fi_user.id)
     raise UserDoesntExists
+
+async def insert_session(uid: str, now: datetime):
+    fi_session = await find_session(sid)
+    if not fi_session:
+        try:
+            create_session(uid, sid, now, expire_delta)
+            session = Session(_id = sid, user_id = uid, created_at = now, expires_at = expire_delta)
+            await session.insert()
+        except:
+            raise SessionCreationError
+    else:
+        raise SessionAlreadyExists
+
+    raise SessionDoesntExists
 
 async def create_scratch_user(username: str, password: str):
     fi_user = await find_user(username)

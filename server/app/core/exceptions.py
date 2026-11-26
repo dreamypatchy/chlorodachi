@@ -42,3 +42,14 @@ class ZoneCreationError(Exception):
 
 class NotDeleted(Exception):
     pass
+
+#Session
+
+class SessionCreationError(Exception):
+    pass
+
+class SessionDoesntExists(Exception):
+    pass
+
+class SessionAlreadyExists(Exception):
+    pass

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, HTTPException
-from app.core.security import token_decode, token_encode, verify_password, create_session
+from app.core.security import token_decode, token_encode, verify_password, create_session, create_access_token, create_refresh_token
 from app.core.database import get_user_id, create_scratch_user, find_user, User
 from datetime import datetime, timedelta
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/v1", tags=["JWT and Logins"])
 async def registration(token: str):
     try:
         token = token_decode(token=token)
-        if token["typ"] == "registration" or token["exp"] > int(datetime.now().timestamp()):
+        if token["typ"] == "registration" and token["exp"] > int(datetime.now().timestamp()):
             try:
                 info = token["info"]
                 user = info["user"]
@@ -42,7 +42,7 @@ async def registration(token: str):
 async def login(token: str):
     try:
         token = token_decode(token=token)
-        if token["typ"] == "login" or token["exp"] > int(datetime.now().timestamp()):
+        if token["typ"] == "login" and token["exp"] > int(datetime.now().timestamp()):
             info = token["info"]
             user = info["user"]
             password = info ["pass"]
@@ -56,4 +56,19 @@ async def login(token: str):
                 return create_session(fi_user.id)
             raise InvalidOrExpiredToken
     except InvalidOrExpiredToken:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+@router.post("/refreshkey", status_code=status.HTTP_200_OK)
+async def refresh_key(token: str):
+    try:
+        token = token_decode(token=token)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    
+
+@router.post("/accesskey", status_code=status.HTTP_200_OK)
+async def refresh_key(token: str):
+    try:
+        token = token_decode(token=token)
+    except:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

@@ -33,15 +33,24 @@ def token_encode(sub: str, sid: str, expire_delta: timedelta, now: datetime, tok
 
     return encoded_token
 
+def create_access_token(uid: str, sid: sid):
+    now = datetime.now(timezone.utc)
+    expire_delta = timedelta(minutes=settings.token_eol_minutes)
+    return token_encode(sub=uid, sid=sid, expire_delta=expire_delta, now=now, token_type="access")
 
-def create_session(uid: str) -> dict:
+def create_refresh_token(uid: str, sid: sid):
+    now = datetime.now(timezone.utc)
+    expire_delta = timedelta(days=settings.token_eol_days)
+    return token_encode(sub=uid, sid=sid, expire_delta=expire_delta, now=now, token_type="refresh")
+
+
+def create_session(uid: str, sid: str, now: datetime, expire_delta: timedelta) -> dict:
     now = datetime.now(timezone.utc)
     sid = str(uuid.uuid4())
     uid = str(uid)
 
-    access_token = token_encode(sub = uid, sid = sid, expire_delta = timedelta(minutes = settings.token_eol_minutes), now = now, token_type = "access")
-    refresh_token = token_encode(sub = uid, sid = sid, expire_delta = timedelta(days = settings.token_eol_days), now = now, token_type = "refresh")
-
+    access_token = create_access_token(uid=uid, sid=sid)
+    refresh_token = create_refresh_token(uid=uid, sid=sid)
     return {"sid": sid, "access_token": access_token, "refresh_token": refresh_token}
 
 def token_decode(token: str) -> dict:
