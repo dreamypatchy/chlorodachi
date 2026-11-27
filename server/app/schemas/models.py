@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Literal
+from enum import Enum
 from beanie import Document, PydanticObjectId, Link
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -25,6 +26,19 @@ TODO:
 - acceptable ranges for autmoatization
 '''
 
+class Metric(str, Enum):
+    temperature = "temperature"
+    humidity = "humidity"
+    moisture = "moisture"
+    illuminance = "illuminance"
+
+class DeviceRole(str, Enum):
+    sensor = "sensor"
+    actuator = "actuator"
+
+class UnregisteredDevices(Document):
+    serial_number: str
+
 class Session(Document):
     _id: str
     user_id: str
@@ -32,22 +46,54 @@ class Session(Document):
     created_at: int
     expires_at: int
 
+class SensorConfig(BaseModel):
+    metric: Metric
+    last_value: float | None = None
+    last_update: int | None = None
+
+class ActuatorConfig(BaseModel):
+    action_type: Literal["switch", "level"] = "switch"
+    is_on: bool = False
+    level: float = 0.0
+
 class Device(Document):
-    serial_number: str
+    serial_number: str = Field(..., unique = True)
     name: str | None = None
+    role: DeviceRole
     device_type: str | None = None
     isActivated: bool = False
     activationDate: int | None = None
+
+    sensor: SensorConfig | None = None
+    actuator: ActuatorConfig | None = None
 
     class Settings:
         name = "device"
 
 class Automation(BaseModel):
-    trigger: Link[Device] | None = None
+    name: str | None = None
+    enabled: bool = True
+    metric: Metric
+
+    min_value: float | None = None
+    max_value: float | None = None
+    trigger_sensor: Link[Device] | None = None
+    actuator: Link[Device] 
+
     trigger_value_min: float | None = None
-    actuator: Link[Device] | None = None
     trigger_value_max: float | None = None
 
+    reset_when_normal: bool = True
+
+class ZoneRange(BaseModel):
+    maxhumidity: float | None = None
+    minhumidity: float | None = None
+    maxtemperature: float | None = None
+    mintemperature: float | None = None
+    maxmoisture: float | None = None
+    minmoisture: float | None = None
+    maxilluminance: float | None = None
+    minilluminance: float | None = None
 
 class ZoneInformation(BaseModel):
     plant: str | None = None
@@ -55,8 +101,8 @@ class ZoneInformation(BaseModel):
     humidity: float = 0.0
     moisture: float = 0.0
     illuminance: float = 0.0
-    automation: List[Automation] | None = None
-    ranges: ZoneRange | None = None
+    zonerange: ZoneRange | None = None
+    automation: List[Automation] = Field(default_factory=list)
 
 class Zone(BaseModel):
     id: PydanticObjectId = Field(default_factory=PydanticObjectId)
@@ -66,15 +112,14 @@ class Zone(BaseModel):
     h: float
     w: float
 
-    devices: list[Link[Device]] | None = None
-
-    zoneinformation: ZoneInformation | None = None
+    devices: list[Link[Device]] = Field(default_factory=list)
+    zoneinformation: ZoneInformation = Field(default_factory=ZoneInformation)
 
 class Greenhouse(BaseModel):
     name: str
     w: float
     h: float
-    zones: List[Zone] | None = None
+    zones: List[Zone] = Field(default_factory=list)
 
 class User(Document):
     username: str

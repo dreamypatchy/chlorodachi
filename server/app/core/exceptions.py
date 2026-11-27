@@ -30,6 +30,9 @@ class DeviceCreationError(Exception):
 class DeviceNotFound(Exception):
     pass
 
+class DeviceAlreadyExists(Exception):
+    pass
+
 #Zone
 
 class ZoneNotFound(Exception):

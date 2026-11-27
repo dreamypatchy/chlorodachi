@@ -4,7 +4,7 @@ from beanie import init_beanie, PydanticObjectId
 from datetime import datetime, timedelta
 
 from app.core.config import settings
-from app.schemas.models import User, Zone, Greenhouse, ZoneInformation, Device, Session, Automation
+from app.schemas.models import *
 from app.core.security import verify_password, hash_password, create_session
 
 from app.core.exceptions import *
@@ -55,23 +55,15 @@ async def find_session(sid: str):
     else:
         return None
 
-async def delete_user(name: str):
-    user = await find_user(name)
-    if user:
-        try:
-            await user.delete()
-        except: 
-            raise NotDeleted
-
-    else:
-        raise UserAlreadyExists
-
 async def get_user_id(username: str):
     fi_user = await find_user(username)
     if fi_user:
         return str(fi_user.id)
     raise UserDoesntExists
 
+'''
+Creating parts of the database
+'''
 async def insert_session(uid: str, now: datetime):
     fi_session = await find_session(sid)
     if not fi_session:
@@ -120,6 +112,34 @@ async def create_scratch_zone(username: str, x: float, y: float, h: float, w: fl
     else:
         raise UserDoesntExists
 
+async def create_scratch_device(serial: str, role: str):
+    fi_device = await find_device(serial=serial)
+    if not fi_device:
+        try:
+            if role == DeviceRole.sensor:
+                role = DeviceRole.sensor
+            elif role == DeviceRole.actuator:
+                role = DeviceRole.actuator
+
+            device = Device(serial_number=serial, role=role)
+
+            await device.insert()
+        except:
+            raise DeviceCreationError
+    else:
+        raise DeviceAlreadyExists
+
+async def put_unregistered(serial_number: str):
+    if not UnregisteredDevices.find_one({"serial_number": serial_number}):
+        device = UnregisteredDevices(serial_number=serial_number)
+        device.insert()
+    else:
+        raise DeviceAlreadyExists
+
+'''
+Configuring parts of the database
+'''
+
 async def link_device_zone(zone_id: str, device_serial: str):
     device = await Device.find_one({"serial_number": device_serial})
     if not device:
@@ -142,6 +162,33 @@ async def link_device_zone(zone_id: str, device_serial: str):
 
     zone.devices.append(device)
     await user.save()
+
+'''
+Queries
+'''
+
+async def get_unregistered():
+    device_list = []
+    for device in await UnregisteredDevices.serial_number.find_one({}):
+        device_list.append(device)
+    
+    return device_list
+
+'''
+Deletions
+'''
+
+async def delete_user(name: str):
+    user = await find_user(name)
+    if user:
+        try:
+            await user.delete()
+        except: 
+            raise NotDeleted
+
+    else:
+        raise UserAlreadyExists
+
 
 
 '''
@@ -172,7 +219,6 @@ async def create_test_device(serial: str, name: str = None):
     try:
         test_device = Device(serial_number = serial, name = name)
         await test_device.insert()
-        return {"Success": "Device created"}
     except:
         raise DeviceCreationError
     

@@ -1,6 +1,7 @@
 from fastapi import UploadFile
 from pathlib import Path, PurePosixPath
 import shutil
+from datetime import datetime, timezone
 
 images_folder_path = Path.cwd().joinpath("app").joinpath("images")
 allowed_extansions = {".png", ".jpeg", ".jpg"}
@@ -48,3 +49,6 @@ def create_image_links(base_link: str):
 
     return {"images": images}
 
+
+def now_timestamp():
+    return int(datetime.now(timezone.utc).timestamp())

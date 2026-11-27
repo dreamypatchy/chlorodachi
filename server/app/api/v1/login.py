@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException
 from app.core.security import token_decode, token_encode, verify_password, create_session, create_access_token, create_refresh_token
 from app.core.database import get_user_id, create_scratch_user, find_user, User
+from app.core.utils import now_timestamp
 from datetime import datetime, timedelta
 
 from app.core.exceptions import UserDoesntExists, UserAlreadyExists, InvalidOrExpiredToken
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/api/v1", tags=["JWT and Logins"])
 async def registration(token: str):
     try:
         token = token_decode(token=token)
-        if token["typ"] == "registration" and token["exp"] > int(datetime.now().timestamp()):
+        if token["typ"] == "registration" and token["exp"] > now_timestamp():
             try:
                 info = token["info"]
                 user = info["user"]
@@ -42,7 +43,7 @@ async def registration(token: str):
 async def login(token: str):
     try:
         token = token_decode(token=token)
-        if token["typ"] == "login" and token["exp"] > int(datetime.now().timestamp()):
+        if token["typ"] == "login" and token["exp"] > now_timestamp():
             info = token["info"]
             user = info["user"]
             password = info ["pass"]
