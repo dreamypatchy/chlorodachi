@@ -20,6 +20,25 @@ fun Zone.toUiModel() : ZoneUiModel {
     )
 }
 
+fun Zone.toFormState(): ZoneFormUiState {
+    val defaults = ZoneFormUiState()
+    val info = zoneInformation
+    val ranges = info?.ranges
+    return ZoneFormUiState(
+        name = name,
+        plant = info?.plant.orEmpty(),
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+        minIlluminance = ranges?.illuminance?.start ?: defaults.minIlluminance,
+        maxIlluminance = ranges?.illuminance?.endInclusive ?: defaults.maxIlluminance,
+        validTemperature = ranges?.temperature ?: defaults.validTemperature,
+        validHumidity = ranges?.humidity ?: defaults.validHumidity,
+        validMoisture = ranges?.moisture ?: defaults.validMoisture,
+    )
+}
+
 private fun ZoneInformation.soilStatus(): SoilStatus {
     val moisture = moisture ?: return SoilStatus.UNKNOWN
     val ranges = ranges ?: return SoilStatus.UNKNOWN

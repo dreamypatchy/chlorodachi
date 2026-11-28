@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.stupid.chlorodachi.ui.DashboardRoute
+import com.stupid.chlorodachi.ui.ZonesRoute
 import com.stupid.chlorodachi.ui.theme.ChlorodachiTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,5 +30,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ChlorodachiApp() {
-    DashboardRoute()
+    ZonesRoute()
 }

@@ -19,4 +19,20 @@
     <string name="app_bar_actions_back">Назад</string>
     <string name="app_bar_actions_notifications">Уведомления</string>
     <string name="app_bar_actions_settings">Настройки</string>
+    <string name="zones_screen_title">Зоны</string>
+    <string name="zones_screen_zone_info">X: %1$s | Y: %2$s | В: %3$s | Ш: %4$s</string>
+    <string name="zones_screen_zone_add_dialog">Добавить зону</string>
+    <string name="zones_screen_zone_dialog_zone_name">Название зоны</string>
+    <string name="zones_screen_zone_dialog_plant">Растение в зоне</string>
+    <string name="zones_screen_zone_dialog_x">X</string>
+    <string name="zones_screen_zone_dialog_y">Y</string>
+    <string name="zones_screen_zone_dialog_width">Ширина</string>
+    <string name="zones_screen_zone_dialog_height">Высота</string>
+    <string name="zones_screen_zone_dialog_min_illuminance">Минимальная освещенность</string>
+    <string name="zones_screen_zone_dialog_max_illuminance">Максимальная освещенность</string>
+    <string name="zones_screen_zone_dialog_valid_temperature">Допустимая температура</string>
+    <string name="zones_screen_zone_dialog_valid_humidity">Допустимая влажность воздуха</string>
+    <string name="zones_screen_zone_dialog_valid_moisture">Допустимая влажность почвы</string>
+    <string name="zones_screen_zone_dialog_add">Добавить</string>
+    <string name="zones_screen_zone_dialog_save">Сохранить</string>
 </resources>
