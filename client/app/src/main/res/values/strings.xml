@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">chlorodachi</string>
-    <string name="no_data">Н/Д</string>
+    <string name="no_data_short">Н/Д</string>
+    <string name="no_data_long">Нет данных</string>
     <string name="login_screen_title">Подключитесь к серверу</string>
     <string name="login_screen_server_address">Адрес сервера</string>
     <string name="login_screen_username">Имя пользователя</string>
